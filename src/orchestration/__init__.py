@@ -6,3 +6,12 @@ replayable state transitions in a durable store — every step budgeted, every
 model call routed through a deterministic cost table, every disagreement between
 agents escalated to a human rather than silently overridden.
 """
+
+from .state_store import RunRecord, RunStatus, StateStore, StateTransition
+
+__all__ = [
+    "RunRecord",
+    "RunStatus",
+    "StateStore",
+    "StateTransition",
+]
