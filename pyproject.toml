@@ -33,7 +33,7 @@ packages = ["src/interop", "src/orchestration", "src/evals", "src/adapters"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-src = ["src", "tests", "data"]
+src = ["src", "tests", "data", "examples"]
 
 [tool.ruff.lint]
 select = [
@@ -51,7 +51,7 @@ select = [
 python_version = "3.11"
 strict = true
 mypy_path = "src"
-files = ["src", "data", "tests"]
+files = ["src", "data", "tests", "examples"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
