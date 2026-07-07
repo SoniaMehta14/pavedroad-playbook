@@ -7,6 +7,7 @@ model call routed through a deterministic cost table, every disagreement between
 agents escalated to a human rather than silently overridden.
 """
 
+from .agents import AnalystAgent, ValidatorAgent
 from .guardrails import (
     BudgetExceededError,
     CostReport,
@@ -14,18 +15,35 @@ from .guardrails import (
     IterationCapExceededError,
     TierSpend,
 )
+from .models import AnalystProposal, DiscrepancyKind, ReconciliationState, ValidatorDecision
+from .pipeline import (
+    HumanReviewItem,
+    ReconciliationRunResult,
+    reconcile_invoices,
+    resume_reconciliation,
+)
 from .routing import RoutingTable
 from .state_store import RunRecord, RunStatus, StateStore, StateTransition
 
 __all__ = [
+    "AnalystAgent",
+    "AnalystProposal",
     "BudgetExceededError",
     "CostReport",
+    "DiscrepancyKind",
     "Guardrails",
+    "HumanReviewItem",
     "IterationCapExceededError",
+    "ReconciliationRunResult",
+    "ReconciliationState",
     "RoutingTable",
     "RunRecord",
     "RunStatus",
     "StateStore",
     "StateTransition",
     "TierSpend",
+    "ValidatorAgent",
+    "ValidatorDecision",
+    "reconcile_invoices",
+    "resume_reconciliation",
 ]
