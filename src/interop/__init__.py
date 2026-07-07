@@ -9,6 +9,7 @@ the ambiguous residual, and a human review queue for anything below the
 confidence bar.
 """
 
+from .dates import day_distance, parse_flexible_date
 from .deterministic import DeterministicMatcher
 from .llm_resolution import LLMResolver
 from .models import (
@@ -36,7 +37,9 @@ __all__ = [
     "ReviewQueueItem",
     "SanitizedText",
     "UnifiedCustomer",
+    "day_distance",
     "delimit_untrusted",
+    "parse_flexible_date",
     "resolve_dataset",
     "sanitize_free_text",
 ]

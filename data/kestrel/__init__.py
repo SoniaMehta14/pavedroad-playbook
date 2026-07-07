@@ -6,6 +6,7 @@ dataset is built to match, and data/kestrel/README.md for the dataset shape.
 """
 
 from data.kestrel.generator import generate_kestrel_dataset
+from data.kestrel.invoices import EQUIPMENT_RATES, InvoiceLineItem, generate_invoices
 from data.kestrel.models import (
     BillingCustomerRecord,
     CanonicalCustomer,
@@ -16,11 +17,14 @@ from data.kestrel.models import (
 )
 
 __all__ = [
+    "EQUIPMENT_RATES",
     "BillingCustomerRecord",
     "CRMAccountRecord",
     "CanonicalCustomer",
     "GroundTruthLink",
+    "InvoiceLineItem",
     "KestrelDataset",
     "PSAJobRecord",
+    "generate_invoices",
     "generate_kestrel_dataset",
 ]
