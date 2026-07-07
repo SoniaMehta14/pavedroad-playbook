@@ -50,7 +50,7 @@ select = [
 python_version = "3.11"
 strict = true
 mypy_path = "src"
-packages = ["interop", "orchestration", "evals", "adapters"]
+files = ["src", "data", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
