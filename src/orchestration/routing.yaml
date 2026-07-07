@@ -1,0 +1,26 @@
+# Deterministic cost-tier routing table for the orchestration engine.
+#
+# Cheap first, expensive only on documented escalation criteria — the
+# same discipline src/interop applies to entity resolution (deterministic
+# match first, LLM only for the ambiguous residual), extended here to
+# model *tier* selection once an LLM call is already warranted.
+tiers:
+  cheap: claude-haiku-4-5
+  mid: claude-sonnet-5
+  expensive: claude-opus-4-8
+
+routes:
+  # Analyst reasoning about a genuinely ambiguous discrepancy (e.g. a
+  # service date a few days off from the matched job) — a narrow
+  # judgment call the cheap tier handles well.
+  ambiguous_discrepancy: cheap
+  # Validator writing up why it disagrees with the Analyst's proposal —
+  # still narrow, but the write-up feeds the human review queue, so a
+  # slightly stronger model is worth the small cost delta.
+  disagreement_writeup: mid
+  # Escalation criterion: this exact task has already round-tripped
+  # through the cheap tier once for this reason and the ambiguity
+  # persists. Only then does the expensive tier get used — this is the
+  # "documented escalation criteria" the guardrails require, not a
+  # default reached for casually.
+  disagreement_writeup_escalated: expensive

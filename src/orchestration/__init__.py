@@ -7,11 +7,25 @@ model call routed through a deterministic cost table, every disagreement between
 agents escalated to a human rather than silently overridden.
 """
 
+from .guardrails import (
+    BudgetExceededError,
+    CostReport,
+    Guardrails,
+    IterationCapExceededError,
+    TierSpend,
+)
+from .routing import RoutingTable
 from .state_store import RunRecord, RunStatus, StateStore, StateTransition
 
 __all__ = [
+    "BudgetExceededError",
+    "CostReport",
+    "Guardrails",
+    "IterationCapExceededError",
+    "RoutingTable",
     "RunRecord",
     "RunStatus",
     "StateStore",
     "StateTransition",
+    "TierSpend",
 ]
