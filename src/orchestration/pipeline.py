@@ -121,13 +121,22 @@ def reconcile_invoices(
                     model_tier="cheap" if proposal.used_llm else None,
                 )
 
+                state_store.log_transition(
+                    run_id=run_id,
+                    task_id=task_id,
+                    step_index=idx,
+                    agent_name="pipeline",
+                    from_state="analyst_proposed",
+                    to_state="validator_reviewing",
+                    thought_process={},
+                )
                 decision = validator.validate(invoice, proposal)
                 state_store.log_transition(
                     run_id=run_id,
                     task_id=task_id,
                     step_index=idx,
                     agent_name="validator",
-                    from_state="analyst_proposed",
+                    from_state="validator_reviewing",
                     to_state="validator_approved" if decision.agrees else "validator_escalated",
                     thought_process=decision.model_dump(),
                     model_used=decision.model_used,
