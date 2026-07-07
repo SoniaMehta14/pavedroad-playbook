@@ -28,4 +28,7 @@ jobs:
         run: uv run mypy
 
       - name: Tests (pytest)
-        run: uv run pytest
+        run: uv run pytest -m "not eval_gate"
+
+      - name: Evaluation regression gate
+        run: uv run pytest -m eval_gate -v
