@@ -72,10 +72,36 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
     nothing for an AR system to bill against without a customer name, so
     they wouldn't produce an invoice in the first place.
     """
+    invoices, _ = _generate_invoices_with_labels(dataset, seed=seed)
+    return invoices
+
+
+def generate_invoices_with_ground_truth(
+    dataset: KestrelDataset, *, seed: int = 100
+) -> tuple[list[InvoiceLineItem], dict[str, str]]:
+    """Same corpus as generate_invoices(), plus the true discrepancy label
+    per invoice_id — known because the generator itself decided which
+    discrepancy type (if any) to inject.
+
+    Labels use the same vocabulary as
+    orchestration.models.DiscrepancyKind ("none", "unknown_customer",
+    "no_matching_job", "amount_mismatch", "date_drift") as plain strings
+    rather than importing that type directly — data/ fixtures should not
+    depend on src/orchestration, since the dependency runs the other way.
+    This is the golden dataset src/evals scores the reconciliation
+    pipeline against.
+    """
+    return _generate_invoices_with_labels(dataset, seed=seed)
+
+
+def _generate_invoices_with_labels(
+    dataset: KestrelDataset, *, seed: int
+) -> tuple[list[InvoiceLineItem], dict[str, str]]:
     rng = random.Random(seed)
     named_jobs = [r for r in dataset.psa_records if r.customer_name_raw]
 
     invoices: list[InvoiceLineItem] = []
+    labels: dict[str, str] = {}
     for i, job in enumerate(named_jobs):
         invoice_id = f"INV-{i + 1:05d}"
         days = rng.randint(1, 5)
@@ -83,6 +109,7 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
         roll = rng.random()
 
         if roll < 0.60:
+            labels[invoice_id] = "none"
             invoices.append(
                 InvoiceLineItem(
                     invoice_id=invoice_id,
@@ -94,6 +121,7 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
                 )
             )
         elif roll < 0.75:
+            labels[invoice_id] = "amount_mismatch"
             overbill_factor = rng.uniform(1.2, 1.5)
             invoices.append(
                 InvoiceLineItem(
@@ -106,6 +134,7 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
                 )
             )
         elif roll < 0.85:
+            labels[invoice_id] = "no_matching_job"
             phantom_equipment = rng.choice(_EQUIPMENT_CATALOG)[0]
             phantom_date = _anchor_date(job) + timedelta(days=rng.randint(30, 90))
             invoices.append(
@@ -119,6 +148,7 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
                 )
             )
         elif roll < 0.95:
+            labels[invoice_id] = "unknown_customer"
             invoices.append(
                 InvoiceLineItem(
                     invoice_id=invoice_id,
@@ -130,6 +160,7 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
                 )
             )
         else:
+            labels[invoice_id] = "date_drift"
             drift_days = rng.randint(3, 10)
             invoices.append(
                 InvoiceLineItem(
@@ -142,4 +173,4 @@ def generate_invoices(dataset: KestrelDataset, *, seed: int = 100) -> list[Invoi
                 )
             )
 
-    return invoices
+    return invoices, labels
