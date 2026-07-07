@@ -1,3 +1,5 @@
+from data.kestrel.generator import _INJECTION_PAYLOADS
+
 from interop.sanitize import delimit_untrusted, sanitize_free_text
 
 
@@ -37,3 +39,11 @@ def test_short_text_is_not_marked_truncated() -> None:
 def test_delimit_untrusted_wraps_with_matching_labeled_tags() -> None:
     wrapped = delimit_untrusted("some data", "record_name")
     assert wrapped == "<record_name>\nsome data\n</record_name>"
+
+
+def test_every_generator_injection_payload_is_flagged() -> None:
+    """Ties this module's flagging directly to the real payloads the
+    synthetic dataset seeds (data/kestrel/generator.py), not just to
+    hand-written examples above."""
+    for payload in _INJECTION_PAYLOADS:
+        assert sanitize_free_text(payload).flagged is True, f"missed payload: {payload!r}"

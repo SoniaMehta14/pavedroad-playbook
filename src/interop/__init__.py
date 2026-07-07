@@ -21,9 +21,12 @@ from .models import (
 from .resolve import ResolutionReport, resolve_dataset
 from .review_queue import ReviewQueue
 from .sanitize import SanitizedText, delimit_untrusted, sanitize_free_text
+from .tools import TOOL_DEFINITIONS, KestrelToolServer
 
 __all__ = [
+    "TOOL_DEFINITIONS",
     "DeterministicMatcher",
+    "KestrelToolServer",
     "LLMMatchDecision",
     "LLMResolver",
     "MatchCandidate",

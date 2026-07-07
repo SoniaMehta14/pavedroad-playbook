@@ -42,6 +42,12 @@ class ReviewQueue:
     def pending(self) -> list[ReviewQueueItem]:
         return [item for item in self._items.values() if item.status == "pending"]
 
+    def by_status(self, status: str) -> list[ReviewQueueItem]:
+        """List every item in a given status — the general form of
+        pending(), needed by the tool-calling surface so a reviewer can
+        also see what's already been resolved or rejected."""
+        return [item for item in self._items.values() if item.status == status]
+
     def get(self, item_id: str) -> ReviewQueueItem:
         return self._items[item_id]
 
