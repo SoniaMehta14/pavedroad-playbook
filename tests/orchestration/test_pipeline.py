@@ -9,53 +9,14 @@ asserted with a hardcoded percentage.
 
 from data.kestrel import generate_invoices, generate_kestrel_dataset
 from data.kestrel.invoices import InvoiceLineItem
+from tests.support.fake_providers import FakeReconciliationProvider
 
-from adapters.base import CompletionResult, Message, Usage
-from adapters.pricing import anthropic_cost_usd
 from interop.resolve import resolve_dataset
 from interop.tools import KestrelToolServer
 from orchestration.guardrails import Guardrails
 from orchestration.pipeline import reconcile_invoices, resume_reconciliation
 from orchestration.routing import RoutingTable
 from orchestration.state_store import StateStore
-
-_FAKE_INPUT_TOKENS = 200
-_FAKE_OUTPUT_TOKENS = 60
-
-
-class _FakeReconciliationProvider:
-    """Serves both the Analyst's ambiguous-date judgment prompt and the
-    Validator's disagreement write-up prompt, branching on prompt content.
-    Computes a real per-tier cost from the actual pricing table for
-    whichever model it's called with, so the end-to-end cost report
-    reflects genuine tier pricing — only the judgment content is canned.
-    Always judges "is_match": deliberately lenient, so the Validator's
-    stricter independent check is what produces real disagreements on
-    the larger date drifts, exercising the escalation path on real data.
-    """
-
-    def complete(
-        self,
-        messages: list[Message],
-        *,
-        model: str,
-        max_tokens: int,
-        system: str | None = None,
-    ) -> CompletionResult:
-        prompt = messages[0].content
-        cost = anthropic_cost_usd(model, _FAKE_INPUT_TOKENS, _FAKE_OUTPUT_TOKENS)
-        if "is_match" in prompt:
-            text = '{"is_match": true, "confidence": 0.8, "rationale": "plausible same booking"}'
-        else:
-            text = "Escalating: independent check does not confirm the analyst's proposed match."
-        return CompletionResult(
-            text=text,
-            model=model,
-            stop_reason="end_turn",
-            usage=Usage(
-                input_tokens=_FAKE_INPUT_TOKENS, output_tokens=_FAKE_OUTPUT_TOKENS, cost_usd=cost
-            ),
-        )
 
 
 def _build_pipeline_inputs() -> tuple[KestrelToolServer, list[InvoiceLineItem]]:
@@ -70,7 +31,7 @@ def test_every_invoice_ends_up_closed_or_in_human_review() -> None:
     tool_server, invoices = _build_pipeline_inputs()
     store = StateStore(":memory:")
     guardrails = Guardrails(state_store=store, routing=RoutingTable.load(), token_budget=10_000_000)
-    provider = _FakeReconciliationProvider()
+    provider = FakeReconciliationProvider()
 
     result = reconcile_invoices(
         invoices,
@@ -92,7 +53,7 @@ def test_state_store_has_a_transition_log_for_every_invoice() -> None:
     tool_server, invoices = _build_pipeline_inputs()
     store = StateStore(":memory:")
     guardrails = Guardrails(state_store=store, routing=RoutingTable.load(), token_budget=10_000_000)
-    provider = _FakeReconciliationProvider()
+    provider = FakeReconciliationProvider()
 
     result = reconcile_invoices(
         invoices,
@@ -116,7 +77,7 @@ def test_reconciliation_routing_saves_money_versus_all_opus_baseline() -> None:
     tool_server, invoices = _build_pipeline_inputs()
     store = StateStore(":memory:")
     guardrails = Guardrails(state_store=store, routing=RoutingTable.load(), token_budget=10_000_000)
-    provider = _FakeReconciliationProvider()
+    provider = FakeReconciliationProvider()
 
     result = reconcile_invoices(
         invoices,
@@ -147,7 +108,7 @@ def test_budget_breach_halts_gracefully_with_a_resumable_checkpoint() -> None:
     store = StateStore(":memory:")
     # A tiny budget guarantees a breach partway through a corpus this size.
     guardrails = Guardrails(state_store=store, routing=RoutingTable.load(), token_budget=300)
-    provider = _FakeReconciliationProvider()
+    provider = FakeReconciliationProvider()
 
     result = reconcile_invoices(
         invoices,
@@ -168,7 +129,7 @@ def test_resume_reconciliation_continues_without_reprocessing_closed_invoices() 
     tool_server, invoices = _build_pipeline_inputs()
     store = StateStore(":memory:")
     guardrails = Guardrails(state_store=store, routing=RoutingTable.load(), token_budget=300)
-    provider = _FakeReconciliationProvider()
+    provider = FakeReconciliationProvider()
 
     first = reconcile_invoices(
         invoices,

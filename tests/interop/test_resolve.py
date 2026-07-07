@@ -4,40 +4,11 @@ check the pipeline behaves sensibly end-to-end, not that any single
 threshold band is exactly right (that's test_deterministic.py's job).
 """
 
-import re
-
 from data.kestrel import generate_kestrel_dataset
+from tests.support.fake_providers import TopCandidateEntityResolutionProvider
 
-from adapters.base import CompletionResult, Message, Usage
 from interop.llm_resolution import LLMResolver
 from interop.resolve import resolve_dataset
-
-
-class _AlwaysTopCandidateProvider:
-    """A fake LLM that always picks the first candidate it's offered, at
-    high confidence — deterministic enough for integration testing while
-    still exercising the full LLM round-trip (prompt building, response
-    parsing, threshold check, matcher.attach)."""
-
-    def complete(
-        self,
-        messages: list[Message],
-        *,
-        model: str,
-        max_tokens: int,
-        system: str | None = None,
-    ) -> CompletionResult:
-        prompt = messages[0].content
-        match = re.search(r"UNIFIED-\d+", prompt)
-        assert match is not None, "resolve.py should never call the LLM with zero candidates"
-        chosen_id = match.group(0)
-        return CompletionResult(
-            text=f'{{"chosen_canonical_id": "{chosen_id}", "confidence": 0.9, '
-            f'"rationale": "top candidate"}}',
-            model=model,
-            stop_reason="end_turn",
-            usage=Usage(input_tokens=10, output_tokens=10, cost_usd=0.0),
-        )
 
 
 def test_every_crm_record_resolves() -> None:
@@ -77,7 +48,7 @@ def test_llm_resolver_reduces_review_queue_size_versus_deterministic_only() -> N
         dataset.crm_records,
         dataset.billing_records,
         dataset.psa_records,
-        llm_resolver=LLMResolver(_AlwaysTopCandidateProvider()),
+        llm_resolver=LLMResolver(TopCandidateEntityResolutionProvider()),
     )
 
     assert len(with_llm.review_queue) <= len(without_llm.review_queue)
