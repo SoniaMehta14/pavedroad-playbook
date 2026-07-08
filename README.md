@@ -89,7 +89,7 @@ two findings that didn't flatter the system, reported anyway.
 the same token counts — **40% saved**, split cleanly across the cheap/mid/expensive tiers
 (15/15/15 calls). On this specific corpus, all-cheap and all-expensive routing
 configurations land on *identical* reconciliation accuracy, because the Validator's
-independent deterministic re-check — not the Analyst's model tier — is what actually
+independent deterministic re-check not the Analyst's model tier is what actually
 guards correctness. That's the two-agent design working as intended, not a coincidence.
 
 **Entity resolution quality.** Deterministic-only matching (no LLM, no API cost) resolves
@@ -121,6 +121,6 @@ calls hand-fixing corrupted databases) with Postgres, and running a customer-exp
 transformation task force that cut escalations 60% using the same discipline this
 repository is built on: instrument the baseline before you intervene, measure everything
 against systems the business already trusts, and never ship a fix you can't explain. This
-repository — and the name "Paved Road" — comes from that same instinct applied to AI
+repository and the name "Paved Road" comes from that same instinct applied to AI
 enablement: build the rails once, well, so the second workflow travels them instead of
 mounting a fresh expedition.
